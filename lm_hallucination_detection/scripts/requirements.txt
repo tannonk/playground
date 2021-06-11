@@ -1,0 +1,7 @@
+sentencepiece==0.1.95
+fastBPE==0.1.0
+sacremoses==0.0.45
+huggingface-hub==0.0.10
+importlib-metadata==4.5.0
+nlp==0.4.0
+pandas==1.2.4

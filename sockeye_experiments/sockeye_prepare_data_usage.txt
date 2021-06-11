@@ -1,0 +1,109 @@
+usage: prepare_data.py [-h] --source SOURCE
+                       [--source-factors SOURCE_FACTORS [SOURCE_FACTORS ...]]
+                       [--source-factors-use-source-vocab SOURCE_FACTORS_USE_SOURCE_VOCAB [SOURCE_FACTORS_USE_SOURCE_VOCAB ...]]
+                       [--target-factors TARGET_FACTORS [TARGET_FACTORS ...]]
+                       [--target-factors-use-target-vocab TARGET_FACTORS_USE_TARGET_VOCAB [TARGET_FACTORS_USE_TARGET_VOCAB ...]]
+                       --target TARGET [--source-vocab SOURCE_VOCAB]
+                       [--target-vocab TARGET_VOCAB]
+                       [--source-factor-vocabs SOURCE_FACTOR_VOCABS [SOURCE_FACTOR_VOCABS ...]]
+                       [--target-factor-vocabs TARGET_FACTOR_VOCABS [TARGET_FACTOR_VOCABS ...]]
+                       [--shared-vocab] [--num-words NUM_WORDS]
+                       [--word-min-count WORD_MIN_COUNT]
+                       [--pad-vocab-to-multiple-of PAD_VOCAB_TO_MULTIPLE_OF]
+                       [--no-bucketing] [--bucket-width BUCKET_WIDTH]
+                       [--bucket-scaling] [--no-bucket-scaling]
+                       [--max-seq-len MAX_SEQ_LEN]
+                       [--num-samples-per-shard NUM_SAMPLES_PER_SHARD]
+                       [--min-num-shards MIN_NUM_SHARDS] [--seed SEED]
+                       --output OUTPUT [--max-processes MAX_PROCESSES]
+                       [--quiet] [--quiet-secondary-workers] [--no-logfile]
+                       [--loglevel {INFO,DEBUG,ERROR}]
+                       [--loglevel-secondary-workers {INFO,DEBUG,ERROR}]
+
+Preprocesses and shards training data.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --source SOURCE, -s SOURCE
+                        Source side of parallel training data.
+  --source-factors SOURCE_FACTORS [SOURCE_FACTORS ...], -sf SOURCE_FACTORS [SOURCE_FACTORS ...]
+                        File(s) containing additional token-parallel source-
+                        side factors. Default: [].
+  --source-factors-use-source-vocab SOURCE_FACTORS_USE_SOURCE_VOCAB [SOURCE_FACTORS_USE_SOURCE_VOCAB ...]
+                        List of bools signaling whether to use the source
+                        vocabulary for the source factors. If empty (default)
+                        each factor has its own vocabulary.
+  --target-factors TARGET_FACTORS [TARGET_FACTORS ...], -tf TARGET_FACTORS [TARGET_FACTORS ...]
+                        File(s) containing additional token-parallel target-
+                        side factors. Default: [].
+  --target-factors-use-target-vocab TARGET_FACTORS_USE_TARGET_VOCAB [TARGET_FACTORS_USE_TARGET_VOCAB ...]
+                        List of bools signaling whether to use the target
+                        vocabulary for the target factors. If empty (default)
+                        each factor has its own vocabulary.
+  --target TARGET, -t TARGET
+                        Target side of parallel training data.
+  --source-vocab SOURCE_VOCAB
+                        Existing source vocabulary (JSON).
+  --target-vocab TARGET_VOCAB
+                        Existing target vocabulary (JSON).
+  --source-factor-vocabs SOURCE_FACTOR_VOCABS [SOURCE_FACTOR_VOCABS ...]
+                        Existing source factor vocabulary (-ies) (JSON).
+  --target-factor-vocabs TARGET_FACTOR_VOCABS [TARGET_FACTOR_VOCABS ...]
+                        Existing target factor vocabulary (-ies) (JSON).
+  --shared-vocab        Share source and target vocabulary. Will be
+                        automatically turned on when using weight tying.
+                        Default: False.
+  --num-words NUM_WORDS
+                        Maximum vocabulary size. Use "x:x" to specify separate
+                        values for src&tgt. A value of 0 indicates that the
+                        vocabulary unrestricted and determined from the data
+                        by creating an entry for all words that occur at least
+                        --word-min-count times.Default: (0, 0).
+  --word-min-count WORD_MIN_COUNT
+                        Minimum frequency of words to be included in
+                        vocabularies. Default: (1, 1).
+  --pad-vocab-to-multiple-of PAD_VOCAB_TO_MULTIPLE_OF
+                        Pad vocabulary to a multiple of this integer. Default:
+                        None.
+  --no-bucketing        Disable bucketing: always unroll the graph to --max-
+                        seq-len. Default: False.
+  --bucket-width BUCKET_WIDTH
+                        Width of buckets in tokens. Default: 8.
+  --bucket-scaling      Scale source/target buckets based on length ratio to
+                        reduce padding. Default: False.
+  --no-bucket-scaling   Removed: The argument "--no-bucket-scaling" has been
+                        removed because this is now the default behavior. To
+                        activate bucket scaling, use the argument "--bucket-
+                        scaling".
+  --max-seq-len MAX_SEQ_LEN
+                        Maximum sequence length in tokens, not counting
+                        BOS/EOS tokens (internal max sequence length is X+1).
+                        Use "x:x" to specify separate values for src&tgt.
+                        Default: (95, 95).
+  --num-samples-per-shard NUM_SAMPLES_PER_SHARD
+                        The approximate number of samples per shard. Default:
+                        10000000.
+  --min-num-shards MIN_NUM_SHARDS
+                        The minimum number of shards to use, even if they
+                        would not reach the desired number of samples per
+                        shard. Default: 1.
+  --seed SEED           Random seed used that makes shard assignments
+                        deterministic. Default: 13.
+  --output OUTPUT, -o OUTPUT
+                        Folder where the prepared and possibly sharded data is
+                        written to.
+  --max-processes MAX_PROCESSES
+                        Process the shards in parallel using max-processes
+                        processes.
+
+Logging:
+  --quiet, -q           Suppress console logging.
+  --quiet-secondary-workers, -qsw
+                        Suppress console logging for secondary workers when
+                        training with Horovod/MPI.
+  --no-logfile          Suppress file logging
+  --loglevel {INFO,DEBUG,ERROR}
+                        Log level. Default: INFO.
+  --loglevel-secondary-workers {INFO,DEBUG,ERROR}
+                        Console log level for secondary workers. Default:
+                        INFO.

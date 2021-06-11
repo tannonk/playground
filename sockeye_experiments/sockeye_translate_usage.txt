@@ -1,0 +1,202 @@
+usage: translate.py [-h] [--config CONFIG] [--input INPUT]
+                    [--input-factors INPUT_FACTORS [INPUT_FACTORS ...]]
+                    [--json-input] [--output OUTPUT] --models MODELS
+                    [MODELS ...] [--checkpoints CHECKPOINTS [CHECKPOINTS ...]]
+                    [--nbest-size NBEST_SIZE] [--beam-size BEAM_SIZE]
+                    [--beam-search-stop {all,first}] [--batch-size BATCH_SIZE]
+                    [--chunk-size CHUNK_SIZE] [--mc-dropout]
+                    [--softmax-temperature SOFTMAX_TEMPERATURE]
+                    [--sample [SAMPLE]] [--seed SEED]
+                    [--ensemble-mode {linear,log_linear}]
+                    [--bucket-width BUCKET_WIDTH]
+                    [--max-input-length MAX_INPUT_LENGTH]
+                    [--max-output-length-num-stds MAX_OUTPUT_LENGTH_NUM_STDS]
+                    [--max-output-length MAX_OUTPUT_LENGTH]
+                    [--restrict-lexicon RESTRICT_LEXICON [RESTRICT_LEXICON ...]]
+                    [--restrict-lexicon-topk RESTRICT_LEXICON_TOPK]
+                    [--avoid-list AVOID_LIST] [--strip-unknown-words]
+                    [--output-type {translation,score,translation_with_score,translation_with_factors,benchmark,json}]
+                    [--length-penalty-alpha LENGTH_PENALTY_ALPHA]
+                    [--length-penalty-beta LENGTH_PENALTY_BETA]
+                    [--brevity-penalty-type {none,learned,constant}]
+                    [--brevity-penalty-weight BREVITY_PENALTY_WEIGHT]
+                    [--brevity-penalty-constant-length-ratio BREVITY_PENALTY_CONSTANT_LENGTH_RATIO]
+                    [--dtype {None,float32,float16,int8}]
+                    [--device-ids DEVICE_IDS [DEVICE_IDS ...]] [--use-cpu]
+                    [--omp-num-threads OMP_NUM_THREADS] [--env ENV]
+                    [--disable-device-locking] [--lock-dir LOCK_DIR] [--quiet]
+                    [--quiet-secondary-workers] [--no-logfile]
+                    [--loglevel {INFO,DEBUG,ERROR}]
+                    [--loglevel-secondary-workers {INFO,DEBUG,ERROR}]
+                    [--no-hybridization]
+
+Translate CLI
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config CONFIG       Path to CLI arguments in yaml format (as saved in
+                        Sockeye model directories as 'args.yaml'). Commandline
+                        arguments have precedence over values in this file.
+  --no-hybridization    Turn off hybridization. Hybridization builds a static
+                        computation graph and computations will therefore be
+                        faster. The downside is that one can not set
+                        breakpoints to inspect intermediate results. Default:
+                        False.
+
+Inference parameters:
+  --input INPUT, -i INPUT
+                        Input file to translate. One sentence per line. If not
+                        given, will read from stdin.
+  --input-factors INPUT_FACTORS [INPUT_FACTORS ...], -if INPUT_FACTORS [INPUT_FACTORS ...]
+                        List of input files containing additional source
+                        factors,each token-parallel to the source. Default:
+                        None.
+  --json-input          If given, the CLI expects string-serialized json
+                        objects as input.Requires at least the input text
+                        field, for example: {'text': 'some input string'}
+                        Optionally, a list of factors can be provided:
+                        {'text': 'some input string', 'factors': ['C C C', 'X
+                        X X']}.
+  --output OUTPUT, -o OUTPUT
+                        Output file to write translations to. If not given,
+                        will write to stdout.
+  --models MODELS [MODELS ...], -m MODELS [MODELS ...]
+                        Model folder(s). Use multiple for ensemble decoding.
+                        Model determines config, best parameters and vocab
+                        files.
+  --checkpoints CHECKPOINTS [CHECKPOINTS ...], -c CHECKPOINTS [CHECKPOINTS ...]
+                        If not given, chooses best checkpoints for model(s).
+                        If specified, must have the same length as --models
+                        and be integer
+  --nbest-size NBEST_SIZE
+                        Size of the nbest list of translations. Default: 1.
+  --beam-size BEAM_SIZE, -b BEAM_SIZE
+                        Size of the beam. Default: 5.
+  --beam-search-stop {all,first}
+                        Stopping criteria. Quit when (all) hypotheses are
+                        finished or when a finished hypothesis is in (first)
+                        position. Default: all.
+  --batch-size BATCH_SIZE
+                        Batch size during decoding. Determines how many
+                        sentences are translated simultaneously. Default: 1.
+  --chunk-size CHUNK_SIZE
+                        Size of the chunks to be read from input at once. The
+                        chunks are sorted and then split into batches.
+                        Therefore the larger the chunk size the better the
+                        grouping of segments of similar length and therefore
+                        the higher the increase in throughput. Default: 1
+                        without batching and 500 * batch_size with batching.
+  --mc-dropout          Turn on dropout during inference (Monte Carlo
+                        dropout). This will make translations non-
+                        deterministic and might slow down translation speed.
+  --softmax-temperature SOFTMAX_TEMPERATURE
+                        Controls peakiness of model predictions. Values < 1.0
+                        produce peaked predictions, values > 1.0 produce
+                        smoothed distributions.
+  --sample [SAMPLE]     Sample from softmax instead of taking best. Optional
+                        argument will restrict sampling to top N vocabulary
+                        items at each step. Default: None.
+  --seed SEED           Random seed used if sampling. Default: None.
+  --ensemble-mode {linear,log_linear}
+                        Ensemble mode. Default: linear.
+  --bucket-width BUCKET_WIDTH
+                        Bucket width for encoder steps. 0 means no bucketing.
+                        Default: 10.
+  --max-input-length MAX_INPUT_LENGTH
+                        Maximum input sequence length. Default: value from
+                        model(s).
+  --max-output-length-num-stds MAX_OUTPUT_LENGTH_NUM_STDS
+                        Number of target-to-source length ratio standard
+                        deviations from training to add to calculate maximum
+                        output length for beam search for each sentence.
+                        Default: 2.
+  --max-output-length MAX_OUTPUT_LENGTH
+                        Maximum number of words to generate during
+                        translation. If None, it will be computed
+                        automatically. Default: None.
+  --restrict-lexicon RESTRICT_LEXICON [RESTRICT_LEXICON ...]
+                        Specify top-k lexicon to restrict output vocabulary to
+                        the k most likely context-free translations of the
+                        source words in each sentence (Devlin, 2017). See the
+                        lexicon module for creating top-k lexicons. To use
+                        multiple lexicons, provide '--restrict-lexicon
+                        key1:path1 key2:path2 ...' and use JSON input to
+                        specify the lexicon for each sentence: {"text": "some
+                        input string", "restrict_lexicon": "key"}. Default:
+                        None.
+  --restrict-lexicon-topk RESTRICT_LEXICON_TOPK
+                        Specify the number of translations to load for each
+                        source word from the lexicon given with --restrict-
+                        lexicon. Default: Load all entries from the lexicon.
+  --avoid-list AVOID_LIST
+                        Specify a file containing phrases (pre-processed, one
+                        per line) to block from the output. Default: None.
+  --strip-unknown-words
+                        Remove any <unk> symbols from outputs. Default: False.
+  --output-type {translation,score,translation_with_score,translation_with_factors,benchmark,json}
+                        Output type. Default: translation.
+  --length-penalty-alpha LENGTH_PENALTY_ALPHA
+                        Alpha factor for the length penalty used in beam
+                        search: (beta + len(Y))**alpha/(beta + 1)**alpha. A
+                        value of 0.0 will therefore turn off length
+                        normalization. Default: 1.0.
+  --length-penalty-beta LENGTH_PENALTY_BETA
+                        Beta factor for the length penalty used in scoring:
+                        (beta + len(Y))**alpha/(beta + 1)**alpha. Default: 0.0
+  --brevity-penalty-type {none,learned,constant}
+                        If specified, adds brevity penalty to the hypotheses'
+                        scores, calculated with learned or constant length
+                        ratios. The latter, by default, uses the length ratio
+                        (|ref|/|hyp|) estimated from the training data and
+                        averaged over models. Default: none.
+  --brevity-penalty-weight BREVITY_PENALTY_WEIGHT
+                        Scaler for the brevity penalty in beam search: weight
+                        * log(BP) + score. Default: 1.0
+  --brevity-penalty-constant-length-ratio BREVITY_PENALTY_CONSTANT_LENGTH_RATIO
+                        Has effect if --brevity-penalty-type is set to
+                        'constant'. If positive, overrides the length ratio,
+                        used for brevity penalty calculation, for all inputs.
+                        If zero, uses the average of length ratios from the
+                        training data over all models. Default: 0.0.
+  --dtype {None,float32,float16,int8}
+                        Data type. Default: None infers from saved model.
+
+Device parameters:
+  --device-ids DEVICE_IDS [DEVICE_IDS ...]
+                        List or number of GPUs ids to use. Default: [-1]. Use
+                        negative numbers to automatically acquire a certain
+                        number of GPUs, e.g. -5 will find 5 free GPUs. Use
+                        positive numbers to acquire a specific GPU id on this
+                        host. (Note that automatic acquisition of GPUs assumes
+                        that all GPU processes on this host are using
+                        automatic sockeye GPU acquisition).
+  --use-cpu             Use CPU device instead of GPU.
+  --omp-num-threads OMP_NUM_THREADS
+                        Set the OMP_NUM_THREADS environment variable (CPU
+                        threads). Recommended: set to number of GPUs for
+                        training, number of physical CPU cores for inference.
+                        Default: None.
+  --env ENV             List of environment variables to be set before
+                        importing MXNet. Separated by ",", e.g.
+                        --env=OMP_NUM_THREADS=4,MXNET_GPU_WORKER_NTHREADS=3
+                        etc.
+  --disable-device-locking
+                        Just use the specified device ids without locking.
+  --lock-dir LOCK_DIR   When acquiring a GPU we do file based locking so that
+                        only one Sockeye process can run on the a GPU. This is
+                        the folder in which we store the file locks. For
+                        locking to work correctly it is assumed all processes
+                        use the same lock directory. The only requirement for
+                        the directory are file write permissions.
+
+Logging:
+  --quiet, -q           Suppress console logging.
+  --quiet-secondary-workers, -qsw
+                        Suppress console logging for secondary workers when
+                        training with Horovod/MPI.
+  --no-logfile          Suppress file logging
+  --loglevel {INFO,DEBUG,ERROR}
+                        Log level. Default: INFO.
+  --loglevel-secondary-workers {INFO,DEBUG,ERROR}
+                        Console log level for secondary workers. Default:
+                        INFO.

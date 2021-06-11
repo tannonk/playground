@@ -1,0 +1,527 @@
+usage: train.py [-h] [--config CONFIG] [--source SOURCE]
+                [--source-factors SOURCE_FACTORS [SOURCE_FACTORS ...]]
+                [--source-factors-use-source-vocab SOURCE_FACTORS_USE_SOURCE_VOCAB [SOURCE_FACTORS_USE_SOURCE_VOCAB ...]]
+                [--target-factors TARGET_FACTORS [TARGET_FACTORS ...]]
+                [--target-factors-use-target-vocab TARGET_FACTORS_USE_TARGET_VOCAB [TARGET_FACTORS_USE_TARGET_VOCAB ...]]
+                [--target TARGET] [--prepared-data PREPARED_DATA]
+                --validation-source VALIDATION_SOURCE
+                [--validation-source-factors VALIDATION_SOURCE_FACTORS [VALIDATION_SOURCE_FACTORS ...]]
+                --validation-target VALIDATION_TARGET
+                [--validation-target-factors VALIDATION_TARGET_FACTORS [VALIDATION_TARGET_FACTORS ...]]
+                [--no-bucketing] [--bucket-width BUCKET_WIDTH]
+                [--bucket-scaling] [--no-bucket-scaling]
+                [--max-seq-len MAX_SEQ_LEN] [--source-vocab SOURCE_VOCAB]
+                [--target-vocab TARGET_VOCAB]
+                [--source-factor-vocabs SOURCE_FACTOR_VOCABS [SOURCE_FACTOR_VOCABS ...]]
+                [--target-factor-vocabs TARGET_FACTOR_VOCABS [TARGET_FACTOR_VOCABS ...]]
+                [--shared-vocab] [--num-words NUM_WORDS]
+                [--word-min-count WORD_MIN_COUNT]
+                [--pad-vocab-to-multiple-of PAD_VOCAB_TO_MULTIPLE_OF] --output
+                OUTPUT [--overwrite-output]
+                [--monitor-pattern MONITOR_PATTERN]
+                [--monitor-stat-func {mx_default,max,mean}] [--params PARAMS]
+                [--allow-missing-params] [--ignore-extra-params]
+                [--encoder {transformer}]
+                [--decoder {transformer,ssru_transformer}]
+                [--num-layers NUM_LAYERS]
+                [--transformer-model-size TRANSFORMER_MODEL_SIZE]
+                [--transformer-attention-heads TRANSFORMER_ATTENTION_HEADS]
+                [--transformer-feed-forward-num-hidden TRANSFORMER_FEED_FORWARD_NUM_HIDDEN]
+                [--transformer-activation-type TRANSFORMER_ACTIVATION_TYPE]
+                [--transformer-positional-embedding-type {none,fixed,learned}]
+                [--transformer-preprocess TRANSFORMER_PREPROCESS]
+                [--transformer-postprocess TRANSFORMER_POSTPROCESS]
+                [--lhuc COMPONENT [COMPONENT ...]] [--num-embed NUM_EMBED]
+                [--source-factors-num-embed SOURCE_FACTORS_NUM_EMBED [SOURCE_FACTORS_NUM_EMBED ...]]
+                [--target-factors-num-embed TARGET_FACTORS_NUM_EMBED [TARGET_FACTORS_NUM_EMBED ...]]
+                [--source-factors-combine {sum,average,concat} [{sum,average,concat} ...]]
+                [--target-factors-combine {sum,average,concat} [{sum,average,concat} ...]]
+                [--source-factors-share-embedding SOURCE_FACTORS_SHARE_EMBEDDING [SOURCE_FACTORS_SHARE_EMBEDDING ...]]
+                [--target-factors-share-embedding TARGET_FACTORS_SHARE_EMBEDDING [TARGET_FACTORS_SHARE_EMBEDDING ...]]
+                [--weight-tying-type {none,src_trg_softmax,src_trg,trg_softmax}]
+                [--dtype {float32,float16}] [--amp]
+                [--amp-scale-interval AMP_SCALE_INTERVAL]
+                [--batch-size BATCH_SIZE]
+                [--batch-type {sentence,word,max-word}]
+                [--batch-sentences-multiple-of BATCH_SENTENCES_MULTIPLE_OF]
+                [--round-batch-sizes-to-multiple-of ROUND_BATCH_SIZES_TO_MULTIPLE_OF]
+                [--update-interval UPDATE_INTERVAL]
+                [--loss {cross-entropy,cross-entropy-without-softmax-output}]
+                [--label-smoothing LABEL_SMOOTHING]
+                [--length-task {ratio,length}]
+                [--length-task-weight LENGTH_TASK_WEIGHT]
+                [--length-task-layers LENGTH_TASK_LAYERS]
+                [--target-factors-weight TARGET_FACTORS_WEIGHT [TARGET_FACTORS_WEIGHT ...]]
+                [--optimized-metric {perplexity,accuracy,length-ratio-mse,bleu,chrf,rouge1}]
+                [--checkpoint-interval CHECKPOINT_INTERVAL]
+                [--min-samples MIN_SAMPLES] [--max-samples MAX_SAMPLES]
+                [--min-updates MIN_UPDATES] [--max-updates MAX_UPDATES]
+                [--max-seconds MAX_SECONDS]
+                [--max-checkpoints MAX_CHECKPOINTS]
+                [--max-num-checkpoint-not-improved MAX_NUM_CHECKPOINT_NOT_IMPROVED]
+                [--checkpoint-improvement-threshold CHECKPOINT_IMPROVEMENT_THRESHOLD]
+                [--min-num-epochs MIN_NUM_EPOCHS]
+                [--max-num-epochs MAX_NUM_EPOCHS]
+                [--embed-dropout EMBED_DROPOUT]
+                [--transformer-dropout-attention TRANSFORMER_DROPOUT_ATTENTION]
+                [--transformer-dropout-act TRANSFORMER_DROPOUT_ACT]
+                [--transformer-dropout-prepost TRANSFORMER_DROPOUT_PREPOST]
+                [--optimizer {adam,sgd}] [--optimizer-params OPTIMIZER_PARAMS]
+                [--horovod]
+                [--kvstore {device,local,dist_sync,dist_device_sync,dist_async,nccl}]
+                [--weight-init {xavier,uniform}]
+                [--weight-init-scale WEIGHT_INIT_SCALE]
+                [--weight-init-xavier-factor-type {in,out,avg}]
+                [--weight-init-xavier-rand-type {uniform,gaussian}]
+                [--initial-learning-rate INITIAL_LEARNING_RATE]
+                [--weight-decay WEIGHT_DECAY] [--momentum MOMENTUM]
+                [--gradient-clipping-threshold GRADIENT_CLIPPING_THRESHOLD]
+                [--gradient-clipping-type {abs,norm,none}]
+                [--learning-rate-scheduler-type {none,inv-sqrt-decay,linear-decay,plateau-reduce}]
+                [--learning-rate-t-scale LEARNING_RATE_T_SCALE]
+                [--learning-rate-reduce-factor LEARNING_RATE_REDUCE_FACTOR]
+                [--learning-rate-reduce-num-not-improved LEARNING_RATE_REDUCE_NUM_NOT_IMPROVED]
+                [--learning-rate-warmup LEARNING_RATE_WARMUP]
+                [--fixed-param-strategy {all_except_decoder,all_except_outer_layers,all_except_embeddings,all_except_output_proj,all_except_feed_forward,encoder_and_source_embeddings,encoder_half_and_source_embeddings}]
+                [--fixed-param-names [FIXED_PARAM_NAMES [FIXED_PARAM_NAMES ...]]]
+                [--decode-and-evaluate DECODE_AND_EVALUATE]
+                [--decode-and-evaluate-device-id DECODE_AND_EVALUATE_DEVICE_ID]
+                [--stop-training-on-decoder-failure] [--seed SEED]
+                [--keep-last-params KEEP_LAST_PARAMS] [--keep-initializations]
+                [--cache-last-best-params CACHE_LAST_BEST_PARAMS]
+                [--cache-strategy {best,last,lifespan}]
+                [--cache-metric {perplexity,accuracy,length-ratio-mse,bleu,chrf,rouge1}]
+                [--dry-run] [--device-ids DEVICE_IDS [DEVICE_IDS ...]]
+                [--use-cpu] [--omp-num-threads OMP_NUM_THREADS] [--env ENV]
+                [--disable-device-locking] [--lock-dir LOCK_DIR] [--quiet]
+                [--quiet-secondary-workers] [--no-logfile]
+                [--loglevel {INFO,DEBUG,ERROR}]
+                [--loglevel-secondary-workers {INFO,DEBUG,ERROR}]
+                [--no-hybridization]
+
+Train Sockeye sequence-to-sequence models.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config CONFIG       Path to CLI arguments in yaml format (as saved in
+                        Sockeye model directories as 'args.yaml'). Commandline
+                        arguments have precedence over values in this file.
+  --no-hybridization    Turn off hybridization. Hybridization builds a static
+                        computation graph and computations will therefore be
+                        faster. The downside is that one can not set
+                        breakpoints to inspect intermediate results. Default:
+                        False.
+
+Data & I/O:
+  --source SOURCE, -s SOURCE
+                        Source side of parallel training data.
+  --source-factors SOURCE_FACTORS [SOURCE_FACTORS ...], -sf SOURCE_FACTORS [SOURCE_FACTORS ...]
+                        File(s) containing additional token-parallel source-
+                        side factors. Default: [].
+  --source-factors-use-source-vocab SOURCE_FACTORS_USE_SOURCE_VOCAB [SOURCE_FACTORS_USE_SOURCE_VOCAB ...]
+                        List of bools signaling whether to use the source
+                        vocabulary for the source factors. If empty (default)
+                        each factor has its own vocabulary.
+  --target-factors TARGET_FACTORS [TARGET_FACTORS ...], -tf TARGET_FACTORS [TARGET_FACTORS ...]
+                        File(s) containing additional token-parallel target-
+                        side factors. Default: [].
+  --target-factors-use-target-vocab TARGET_FACTORS_USE_TARGET_VOCAB [TARGET_FACTORS_USE_TARGET_VOCAB ...]
+                        List of bools signaling whether to use the target
+                        vocabulary for the target factors. If empty (default)
+                        each factor has its own vocabulary.
+  --target TARGET, -t TARGET
+                        Target side of parallel training data.
+  --prepared-data PREPARED_DATA, -d PREPARED_DATA
+                        Prepared training data directory created through
+                        python -m sockeye.prepare_data.
+  --validation-source VALIDATION_SOURCE, -vs VALIDATION_SOURCE
+                        Source side of validation data.
+  --validation-source-factors VALIDATION_SOURCE_FACTORS [VALIDATION_SOURCE_FACTORS ...], -vsf VALIDATION_SOURCE_FACTORS [VALIDATION_SOURCE_FACTORS ...]
+                        File(s) containing additional token-parallel
+                        validation source side factors. Default: [].
+  --validation-target VALIDATION_TARGET, -vt VALIDATION_TARGET
+                        Target side of validation data.
+  --validation-target-factors VALIDATION_TARGET_FACTORS [VALIDATION_TARGET_FACTORS ...], -vtf VALIDATION_TARGET_FACTORS [VALIDATION_TARGET_FACTORS ...]
+                        File(s) containing additional token-parallel
+                        validation target side factors. Default: [].
+  --no-bucketing        Disable bucketing: always unroll the graph to --max-
+                        seq-len. Default: False.
+  --bucket-width BUCKET_WIDTH
+                        Width of buckets in tokens. Default: 8.
+  --bucket-scaling      Scale source/target buckets based on length ratio to
+                        reduce padding. Default: False.
+  --no-bucket-scaling   Removed: The argument "--no-bucket-scaling" has been
+                        removed because this is now the default behavior. To
+                        activate bucket scaling, use the argument "--bucket-
+                        scaling".
+  --max-seq-len MAX_SEQ_LEN
+                        Maximum sequence length in tokens, not counting
+                        BOS/EOS tokens (internal max sequence length is X+1).
+                        Use "x:x" to specify separate values for src&tgt.
+                        Default: (95, 95).
+  --source-vocab SOURCE_VOCAB
+                        Existing source vocabulary (JSON).
+  --target-vocab TARGET_VOCAB
+                        Existing target vocabulary (JSON).
+  --source-factor-vocabs SOURCE_FACTOR_VOCABS [SOURCE_FACTOR_VOCABS ...]
+                        Existing source factor vocabulary (-ies) (JSON).
+  --target-factor-vocabs TARGET_FACTOR_VOCABS [TARGET_FACTOR_VOCABS ...]
+                        Existing target factor vocabulary (-ies) (JSON).
+  --shared-vocab        Share source and target vocabulary. Will be
+                        automatically turned on when using weight tying.
+                        Default: False.
+  --num-words NUM_WORDS
+                        Maximum vocabulary size. Use "x:x" to specify separate
+                        values for src&tgt. A value of 0 indicates that the
+                        vocabulary unrestricted and determined from the data
+                        by creating an entry for all words that occur at least
+                        --word-min-count times.Default: (0, 0).
+  --word-min-count WORD_MIN_COUNT
+                        Minimum frequency of words to be included in
+                        vocabularies. Default: (1, 1).
+  --pad-vocab-to-multiple-of PAD_VOCAB_TO_MULTIPLE_OF
+                        Pad vocabulary to a multiple of this integer. Default:
+                        None.
+  --output OUTPUT, -o OUTPUT
+                        Folder where model & training results are written to.
+  --overwrite-output    Delete all contents of the model directory if it
+                        already exists.
+  --monitor-pattern MONITOR_PATTERN
+                        Pattern to match outputs/weights/gradients to monitor.
+                        '.*' monitors everything. Default: None.
+  --monitor-stat-func {mx_default,max,mean}
+                        Statistics function to run on monitored
+                        outputs/weights/gradients. Default: mx_default.
+
+ModelConfig:
+  --params PARAMS, -p PARAMS
+                        Initialize model parameters from file. Overrides
+                        random initializations.
+  --allow-missing-params
+                        Allow missing parameters when initializing model
+                        parameters from file. Default: False.
+  --ignore-extra-params
+                        Allow extra parameters when initializing model
+                        parameters from file. Default: False.
+  --encoder {transformer}
+                        Type of encoder. Default: transformer.
+  --decoder {transformer,ssru_transformer}
+                        Type of decoder. Default: transformer.
+                        'ssru_transformer' uses Simpler Simple Recurrent Units
+                        (Kim et al, 2019) as replacement for self-attention
+                        layers.
+  --num-layers NUM_LAYERS
+                        Number of layers for encoder & decoder. Use "x:x" to
+                        specify separate values for encoder & decoder.
+                        Default: (6, 6).
+  --transformer-model-size TRANSFORMER_MODEL_SIZE
+                        Number of hidden units in transformer layers. Use
+                        "x:x" to specify separate values for encoder &
+                        decoder. Default: (512, 512).
+  --transformer-attention-heads TRANSFORMER_ATTENTION_HEADS
+                        Number of heads for all self-attention when using
+                        transformer layers. Use "x:x" to specify separate
+                        values for encoder & decoder. Default: (8, 8).
+  --transformer-feed-forward-num-hidden TRANSFORMER_FEED_FORWARD_NUM_HIDDEN
+                        Number of hidden units in transformers feed forward
+                        layers. Use "x:x" to specify separate values for
+                        encoder & decoder. Default: (2048, 2048).
+  --transformer-activation-type TRANSFORMER_ACTIVATION_TYPE
+                        Type of activation to use for each feed forward layer.
+                        Use "x:x" to specify different values for encoder &
+                        decoder. Supported: relu swish1 gelu. Default:
+                        ('relu', 'relu').
+  --transformer-positional-embedding-type {none,fixed,learned}
+                        The type of positional embedding. Default: fixed.
+  --transformer-preprocess TRANSFORMER_PREPROCESS
+                        Transformer preprocess sequence for encoder and
+                        decoder. Supports three types of operations:
+                        d=dropout, r=residual connection, n=layer
+                        normalization. You can combine in any order, for
+                        example: "ndr". Leave empty to not use any of these
+                        operations. You can specify separate sequences for
+                        encoder and decoder by separating with ":" For
+                        example: n:drn Default: ('n', 'n').
+  --transformer-postprocess TRANSFORMER_POSTPROCESS
+                        Transformer postprocess sequence for encoder and
+                        decoder. Supports three types of operations:
+                        d=dropout, r=residual connection, n=layer
+                        normalization. You can combine in any order, for
+                        example: "ndr". Leave empty to not use any of these
+                        operations. You can specify separate sequences for
+                        encoder and decoder by separating with ":" For
+                        example: n:drn Default: ('dr', 'dr').
+  --lhuc COMPONENT [COMPONENT ...]
+                        Use LHUC (Vilar 2018). Include an amplitude parameter
+                        to hidden units for domain adaptation. Needs a pre-
+                        trained model. Valid values: encoder, decoder, all.
+                        Default: None.
+  --num-embed NUM_EMBED
+                        Embedding size for source and target tokens. Use "x:x"
+                        to specify separate values for src&tgt. Default: 512.
+  --source-factors-num-embed SOURCE_FACTORS_NUM_EMBED [SOURCE_FACTORS_NUM_EMBED ...]
+                        Embedding size for additional source factors. You must
+                        provide as many dimensions as (validation) source
+                        factor files. Default: [].
+  --target-factors-num-embed TARGET_FACTORS_NUM_EMBED [TARGET_FACTORS_NUM_EMBED ...]
+                        Embedding size for additional target factors. You must
+                        provide as many dimensions as (validation) target
+                        factor files. Default: [].
+  --source-factors-combine {sum,average,concat} [{sum,average,concat} ...], -sfc {sum,average,concat} [{sum,average,concat} ...]
+                        How to combine source factors. Can be either one value
+                        which will be applied to all source factors, or a list
+                        of values. Default: ['sum'].
+  --target-factors-combine {sum,average,concat} [{sum,average,concat} ...], -tfc {sum,average,concat} [{sum,average,concat} ...]
+                        How to combine target factors. Can be either one value
+                        which will be applied to all target factors, or a list
+                        of values. Default: ['sum'].
+  --source-factors-share-embedding SOURCE_FACTORS_SHARE_EMBEDDING [SOURCE_FACTORS_SHARE_EMBEDDING ...]
+                        Share the embeddings with the source language. Can be
+                        either one value which will be applied to all source
+                        factors, or a list of values. Default: [False].
+  --target-factors-share-embedding TARGET_FACTORS_SHARE_EMBEDDING [TARGET_FACTORS_SHARE_EMBEDDING ...]
+                        Share the embeddings with the target language. Can be
+                        either one value which will be applied to all target
+                        factors, or a list of values. Default: [False].
+  --weight-tying-type {none,src_trg_softmax,src_trg,trg_softmax}
+                        The type of weight tying. source embeddings=src,
+                        target embeddings=trg, target softmax weight
+                        matrix=softmax. Default: src_trg_softmax.
+  --dtype {float32,float16}
+                        Data type.
+  --amp                 Use MXNet's automatic mixed precision (AMP).
+  --amp-scale-interval AMP_SCALE_INTERVAL
+                        Attempt to increase loss scale after this many updates
+                        without overflow. Default: 2000.
+
+Training parameters:
+  --batch-size BATCH_SIZE, -b BATCH_SIZE
+                        Mini-batch size per process. Depending on --batch-
+                        type, this either refers to words or sentences. The
+                        effective batch size (update size) is num_processes *
+                        batch_size * update_interval. Default: 4096.
+  --batch-type {sentence,word,max-word}
+                        sentence: each batch contains exactly X sentences.
+                        word: each batch contains approximately X target
+                        words. max-word: each batch contains at most X target
+                        words. Default: word.
+  --batch-sentences-multiple-of BATCH_SENTENCES_MULTIPLE_OF
+                        For word and max-word batching, guarantee that each
+                        batch contains a multiple of X sentences. For word
+                        batching, round up or down to nearest multiple. For
+                        max-word batching, always round down. Default: 8.
+  --round-batch-sizes-to-multiple-of ROUND_BATCH_SIZES_TO_MULTIPLE_OF
+                        Removed: The argument "--round-batch-sizes-to-
+                        multiple-of" has been renamed to "--batch-sentences-
+                        multiple-of".
+  --update-interval UPDATE_INTERVAL
+                        Accumulate gradients over X batches for each model
+                        update. Set a value higher than 1 to simulate large
+                        batches (ex: batch_size 2560 with update_interval 4
+                        gives effective batch size 10240). Default: 1.
+  --loss {cross-entropy,cross-entropy-without-softmax-output}
+                        Loss to optimize. Default: cross-entropy-without-
+                        softmax-output.
+  --label-smoothing LABEL_SMOOTHING
+                        Smoothing constant for label smoothing. Default: 0.1.
+  --length-task {ratio,length}
+                        If specified, adds an auxiliary task during training
+                        to predict source/target length ratios (mean squared
+                        error loss), or absolute lengths (Poisson) loss.
+                        Default None.
+  --length-task-weight LENGTH_TASK_WEIGHT
+                        The weight of the auxiliary --length-task loss.
+                        Default 1.0.
+  --length-task-layers LENGTH_TASK_LAYERS
+                        Number of fully-connected layers for predicting the
+                        length ratio. Default 1.
+  --target-factors-weight TARGET_FACTORS_WEIGHT [TARGET_FACTORS_WEIGHT ...]
+                        Weights of target factor losses. If one value is
+                        given, it applies to all secondary target factors. For
+                        multiple values, the number of weights given has to
+                        match the number of target factors. Default: [1.0].
+  --optimized-metric {perplexity,accuracy,length-ratio-mse,bleu,chrf,rouge1}
+                        Metric to optimize with early stopping {perplexity,
+                        accuracy, length-ratio-mse, bleu, chrf, rouge1}.
+                        Default: perplexity.
+  --checkpoint-interval CHECKPOINT_INTERVAL
+                        Checkpoint and evaluate every x updates (update-
+                        interval * batches). Default: 4000.
+  --min-samples MIN_SAMPLES
+                        Minimum number of samples before training can stop.
+                        Default: None.
+  --max-samples MAX_SAMPLES
+                        Maximum number of samples. Default: None.
+  --min-updates MIN_UPDATES
+                        Minimum number of updates before training can stop.
+                        Default: None.
+  --max-updates MAX_UPDATES
+                        Maximum number of updates. Default: None.
+  --max-seconds MAX_SECONDS
+                        Training will stop on the next checkpoint after
+                        reaching the maximum seconds. Default: None.
+  --max-checkpoints MAX_CHECKPOINTS
+                        Maximum number of checkpoints to continue training the
+                        model before training is stopped. Default: None.
+  --max-num-checkpoint-not-improved MAX_NUM_CHECKPOINT_NOT_IMPROVED
+                        Maximum number of checkpoints the model is allowed to
+                        not improve in <optimized-metric> on validation data
+                        before training is stopped. Default: None.
+  --checkpoint-improvement-threshold CHECKPOINT_IMPROVEMENT_THRESHOLD
+                        Improvement in <optimized-metric> over specified
+                        number of checkpoints must exceed this value to be
+                        considered actual improvement. Default: 0.0.
+  --min-num-epochs MIN_NUM_EPOCHS
+                        Minimum number of epochs (passes through the training
+                        data) before training can stop. Default: None.
+  --max-num-epochs MAX_NUM_EPOCHS
+                        Maximum number of epochs (passes through the training
+                        data) Default: None.
+  --embed-dropout EMBED_DROPOUT
+                        Dropout probability for source & target embeddings.
+                        Use "x:x" to specify separate values. Default: (0.0,
+                        0.0).
+  --transformer-dropout-attention TRANSFORMER_DROPOUT_ATTENTION
+                        Dropout probability for multi-head attention. Use
+                        "x:x" to specify separate values for encoder &
+                        decoder. Default: (0.1, 0.1).
+  --transformer-dropout-act TRANSFORMER_DROPOUT_ACT
+                        Dropout probability before activation in feed-forward
+                        block. Use "x:x" to specify separate values for
+                        encoder & decoder. Default: (0.1, 0.1).
+  --transformer-dropout-prepost TRANSFORMER_DROPOUT_PREPOST
+                        Dropout probability for pre/postprocessing blocks. Use
+                        "x:x" to specify separate values for encoder &
+                        decoder. Default: (0.1, 0.1).
+  --optimizer {adam,sgd}
+                        SGD update rule. Default: adam.
+  --optimizer-params OPTIMIZER_PARAMS
+                        Additional optimizer params as dictionary. Format:
+                        key1:value1,key2:value2,...
+  --horovod             Use Horovod/MPI for distributed training (Sergeev and
+                        Del Balso 2018, arxiv.org/abs/1802.05799). When using
+                        this option, run Sockeye with `horovodrun -np X
+                        python3 -m sockeye.train` where X is the number of
+                        processes. Increasing the number of processes
+                        multiplies the effective batch size (ex: batch_size
+                        2560 with `-np 4` gives effective batch size 10240).
+  --kvstore {device,local,dist_sync,dist_device_sync,dist_async,nccl}
+                        The MXNet kvstore to use. 'device' is recommended for
+                        single process training. Use any of 'dist_sync',
+                        'dist_device_sync' and 'dist_async' for distributed
+                        training. Default: device.
+  --weight-init {xavier,uniform}
+                        Type of base weight initialization. Default: xavier.
+  --weight-init-scale WEIGHT_INIT_SCALE
+                        Weight initialization scale. Applies to uniform
+                        (scale) and xavier (magnitude). Default: 3.0.
+  --weight-init-xavier-factor-type {in,out,avg}
+                        Xavier factor type. Default: avg.
+  --weight-init-xavier-rand-type {uniform,gaussian}
+                        Xavier random number generator type. Default: uniform.
+  --initial-learning-rate INITIAL_LEARNING_RATE
+                        Initial learning rate. Default: 0.0002.
+  --weight-decay WEIGHT_DECAY
+                        Weight decay constant. Default: 0.0.
+  --momentum MOMENTUM   Momentum constant. Default: None.
+  --gradient-clipping-threshold GRADIENT_CLIPPING_THRESHOLD
+                        Clip absolute gradients values greater than this
+                        value. Set to negative to disable. Default: 1.0.
+  --gradient-clipping-type {abs,norm,none}
+                        The type of gradient clipping. Default: none.
+  --learning-rate-scheduler-type {none,inv-sqrt-decay,linear-decay,plateau-reduce}
+                        Learning rate scheduler type. Default: plateau-reduce.
+  --learning-rate-t-scale LEARNING_RATE_T_SCALE
+                        Step number is multiplied by this value when
+                        determining learning rate for the current step.
+                        Default: 1.0.
+  --learning-rate-reduce-factor LEARNING_RATE_REDUCE_FACTOR
+                        Factor to multiply learning rate with (for 'plateau-
+                        reduce' learning rate scheduler). Default: 0.9.
+  --learning-rate-reduce-num-not-improved LEARNING_RATE_REDUCE_NUM_NOT_IMPROVED
+                        For 'plateau-reduce' learning rate scheduler. Adjust
+                        learning rate if <optimized-metric> did not improve
+                        for x checkpoints. Default: 8.
+  --learning-rate-warmup LEARNING_RATE_WARMUP
+                        Number of warmup steps. If set to x, linearly
+                        increases learning rate from 10% to 100% of the
+                        initial learning rate. Default: 0.
+  --fixed-param-strategy {all_except_decoder,all_except_outer_layers,all_except_embeddings,all_except_output_proj,all_except_feed_forward,encoder_and_source_embeddings,encoder_half_and_source_embeddings}
+                        Fix various parameters during training using a named
+                        strategy. The strategy name indicates which parameters
+                        will be fixed (Wuebker et al., 2018). Default: None.
+  --fixed-param-names [FIXED_PARAM_NAMES [FIXED_PARAM_NAMES ...]]
+                        Manually specify names of parameters to fix during
+                        training. Default: [].
+  --decode-and-evaluate DECODE_AND_EVALUATE
+                        x>0: decode x sampled sentences from validation data
+                        and compute evaluation metrics. x==-1: use full
+                        validation data. Default: 500.
+  --decode-and-evaluate-device-id DECODE_AND_EVALUATE_DEVICE_ID
+                        Separate device for decoding validation data. Use a
+                        negative number to automatically acquire a GPU. Use a
+                        positive number to acquire a specific GPU. Default:
+                        None.
+  --stop-training-on-decoder-failure
+                        Stop training as soon as any checkpoint decoder fails
+                        (e.g. because there is not enough GPU memory).
+                        Default: False.
+  --seed SEED           Random seed. Default: 1.
+  --keep-last-params KEEP_LAST_PARAMS
+                        Keep only the last n params files, use -1 to keep all
+                        files. Default: -1
+  --keep-initializations
+                        In addition to keeping the last n params files, also
+                        keep params from checkpoint 0.
+  --cache-last-best-params CACHE_LAST_BEST_PARAMS
+                        Cache the last n best params files, as distinct from
+                        the last n in sequence. Use 0 or negative to disable.
+                        Default: 0
+  --cache-strategy {best,last,lifespan}
+                        Strategy to use when deciding which are the "best"
+                        params files. Default: best
+  --cache-metric {perplexity,accuracy,length-ratio-mse,bleu,chrf,rouge1}
+                        Metric to use when deciding which are the "best"
+                        params files. Default: perplexity
+  --dry-run             Do not perform any actual training, but print
+                        statistics about the model and mode of operation.
+
+Device parameters:
+  --device-ids DEVICE_IDS [DEVICE_IDS ...]
+                        List or number of GPUs ids to use. Default: [-1]. Use
+                        negative numbers to automatically acquire a certain
+                        number of GPUs, e.g. -5 will find 5 free GPUs. Use
+                        positive numbers to acquire a specific GPU id on this
+                        host. (Note that automatic acquisition of GPUs assumes
+                        that all GPU processes on this host are using
+                        automatic sockeye GPU acquisition).
+  --use-cpu             Use CPU device instead of GPU.
+  --omp-num-threads OMP_NUM_THREADS
+                        Set the OMP_NUM_THREADS environment variable (CPU
+                        threads). Recommended: set to number of GPUs for
+                        training, number of physical CPU cores for inference.
+                        Default: None.
+  --env ENV             List of environment variables to be set before
+                        importing MXNet. Separated by ",", e.g.
+                        --env=OMP_NUM_THREADS=4,MXNET_GPU_WORKER_NTHREADS=3
+                        etc.
+  --disable-device-locking
+                        Just use the specified device ids without locking.
+  --lock-dir LOCK_DIR   When acquiring a GPU we do file based locking so that
+                        only one Sockeye process can run on the a GPU. This is
+                        the folder in which we store the file locks. For
+                        locking to work correctly it is assumed all processes
+                        use the same lock directory. The only requirement for
+                        the directory are file write permissions.
+
+Logging:
+  --quiet, -q           Suppress console logging.
+  --quiet-secondary-workers, -qsw
+                        Suppress console logging for secondary workers when
+                        training with Horovod/MPI.
+  --no-logfile          Suppress file logging
+  --loglevel {INFO,DEBUG,ERROR}
+                        Log level. Default: INFO.
+  --loglevel-secondary-workers {INFO,DEBUG,ERROR}
+                        Console log level for secondary workers. Default:
+                        INFO.

@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+
+
+#####################################
+# Flags to choose with stages to run:
+#####################################
+
+do_preprocess=1
+do_train=1
+do_decode=1
+
+##################
+# Input arguments:
+##################
+
+DATA=$1
+vocabulary=${9:-''}
+
+
+DATA := /srv/scratch2/kew/fairseq_materials/rrgen_012021/de/mini
+EXP_NAME := lstm_srcl_bpemb200_hd200
+GPU := 1
+
+# -------------
+# PREPROCESSING
+# -------------
+
+prepare_data: "$DATA"/bpe
+	fairseq-preprocess \
+	--task rrgen_translation \
+	--trainpref "$DATA"/bpe/train \
+	--validpref "$DATA"/bpe/valid \
+	--testpref "$DATA"/bpe/test \
+	--source-lang review \
+	--target-lang response \
+	--sent-ext alpha_sentiment \
+	--rate-ext rating \
+	--cate-ext domain \
+	--len-ext review_length \
+	--user-dir /home/user/kew/INSTALLS/ffairseq/examples/rrgen \
+	--joined-dictionary \
+	--destdir "$DATA"/prep \
+	--dataset-impl raw \
+	--tokenizer space \
+	--bpe sentencepiece \
+	--workers 20
+
+# --------
+# TRAINING
+# NB. Ensure that experiment name corresponds to specified
+# attribute settings
+# e.g. --use-sentiment alpha_sentiment, etc.
+# --------
+
+run_training: $(DATA)/prep
+	mkdir -p $(DATA)/$(EXP_NAME)
+	CUDA_VISIBLE_DEVICES=$(GPU) \
+	nohup \
+	fairseq-train \
+	$(DATA)/prep \
+	-s review -t response \
+	--arch rrgen_lstm_arch \
+	--task rrgen_translation \
+	--truncate-source --truncate-target \
+	--user-dir /home/user/kew/INSTALLS/ffairseq/examples/rrgen/ \
+	--dataset-impl raw \
+	--max-epoch 20 \
+	--max-tokens 10240 --update-freq 1 \
+	--lr 0.001 --optimizer adam \
+	--encoder-embed-path /srv/scratch2/kew/embeddings/data/de/de.wiki.bpe.vs10000.d200.w2v.txt \
+	--decoder-embed-path /srv/scratch2/kew/embeddings/data/de/de.wiki.bpe.vs10000.d200.w2v.txt \
+	--encoder-embed-dim 200 --decoder-embed-dim 200 --decoder-out-embed-dim 200 \
+	--share-all-embeddings \
+	--encoder-hidden-size 200 \
+	--decoder-hidden-size 200 \
+	--use-sentiment alpha_sentiment \
+	--use-category domain \
+	--use-rating rating \
+	--use-length review_length \
+	--save-dir $(DATA)/$(EXP_NAME)/checkpoints/ --save-interval 4 >| $(DATA)/$(EXP_NAME)/train.log &
+
+decode: $(DATA)/$(EXP_NAME)/checkpoints
+	CUDA_VISIBLE_DEVICES=$(GPU) \
+	nohup \
+	fairseq-generate \
+	$(DATA)/prep \
+	--path $</checkpoint_best.pt \
+	-s review -t response \
+	--task rrgen_translation --truncate-source --truncate-target \
+	--dataset-impl raw \
+	--user-dir /home/user/kew/INSTALLS/ffairseq/examples/rrgen/ \
+	--batch-size 10 \
+	--sampling \
+	--sampling-topk 5 \
+	--nbest 5 \
+	--remove-bpe sentencepiece \
+	--use-sentiment alpha_sentiment \
+	--use-category domain \
+	--use-rating rating \
+	--use-length review_length >| $(DATA)/$(EXP_NAME)/nbest5_topk5.txt &

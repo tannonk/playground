@@ -2,27 +2,34 @@
 # -*- coding: utf-8 -*-
 
 """
-python hallu_lm.py --dict /srv/scratch6/kew/lm_data/rrgen_de/lm_cond/ --lm /srv/scratch6/kew/lm_data/rrgen_de/lm_unc/210615/checkpoint_best.pt --lmx /srv/scratch6/kew/lm_data/rrgen_de/lm_cond/210615/checkpoint_best.pt --infile /srv/scratch6/kew/lm_data/rrgen_de/validation_src_tgt_for_hallucination_detection_de.txt --outfile /srv/scratch6/kew/lm_data/rrgen_de/validation_src_tgt_hallucination_detection_de.jsonl
 
-TODO: fix sep token between context and target in tokenizer
+# minimal example
+    python hallu_lm.py --dict /srv/scratch6/kew/lm_data/rrgen_de/gpt2tiny/lm_cond/ --lm /srv/scratch6/kew/lm_data/rrgen_de/gpt2tiny/lm_cond/210615/checkpoint_best.pt > data_egs/scores.jsonl
+
+python hallu_lm.py --dict /srv/scratch6/kew/lm_data/rrgen_de/gpt2tiny/lm_cond/ --lm /srv/scratch6/kew/lm_data/rrgen_de/gpt2tiny/lm_cond/210615/checkpoint_best.pt --infile /srv/scratch6/kew/lm_data/rrgen_de/validation_src_tgt_for_hallucination_detection_de.txt --outfile /srv/scratch6/kew/lm_data/rrgen_de/validation_src_tgt_hallucination_detection_de.jsonl
 
 """
 
 import sys
+import math
+import logging
+import numpy as np
 from tqdm import tqdm
 import json
 import re
+import pandas as pd
 import torch
 import argparse
 # The same interface can be used with custom models as well
 from fairseq.models.transformer_lm import TransformerLanguageModel
 
+
 def set_args():
     ap = argparse.ArgumentParser()
     
     ap.add_argument('--dict', type=str, help='path to data directory containing `dict.txt` file required by fairseq.')
-    ap.add_argument('--lm', type=str, required=True, help='path to unconditional language model dir')
-    ap.add_argument('--lmx', type=str, required=True, help='path to conditional language model dir')
+    ap.add_argument('--lm', type=str, required=True, help='path to conditional language model checkpoint')
+    ap.add_argument('--gpu', action='store_true', help='if specified, model will be loaded onto first GPU')
     ap.add_argument('--infile', type=str, required=False, help='optional infile for processing/scoring source-target pairs')
     ap.add_argument('--outfile', type=str, required=False, help='optional outfile for writing json outputs.')
     
@@ -36,80 +43,61 @@ class HalluLMScorer:
 
     """
 
-    def __init__(self, dictionary: str, LM_path: str, LMx_path: str,):
+    def __init__(self, dictionary: str, LM_path: str, use_gpu: bool):
         
-        self.lm = self._load_custom_lm(dictionary, LM_path)
-        self.lmx = self._load_custom_lm(dictionary, LMx_path)
-        
+        self.lm = self._load_custom_lm(dictionary, LM_path)        
         # disable dropout
         self.lm.eval()
-        self.lmx.eval()
 
-        # if torch.cuda.is_available():
-        # # print(torch.cuda.current_device())
-        #     self.lm.cuda() # move model to GPU
-        #     self.lmx.cuda()
-
-    def score_lmx(self, target: str, context: str, verbose=False) -> torch.Tensor:
-        """
-        Use the context-aware conditional language model
-        (LMx) to score the target sequence.
-        
-        Args:
-            target: target text or model hypothesis
-            context: expected to be consist of original
-            source text + start of sequence token `<BOS>`
-        """
-        # encode adds </s> implicitly, so remove this from context
-        context_tokens = self.lmx.encode(context)[:-1] 
-        context_length = context_tokens.shape[-1]
-                 
-        if verbose:
-            print(
-                f'prefix = {self.lmx.tgt_dict.string(context_tokens)} ~~~ target = {self.lmx.tgt_dict.string(self.lmx.encode(target))}')
-        
-          
-        norm_scores = self.lmx.score(context+target)
-        # trim scores corresponding to context and <BOS> seperator token
-        return (
-            norm_scores['positional_scores'][context_length:].numpy(), 
-            self.lmx.string(norm_scores['tokens'][context_length:])
-        )
+        if torch.cuda.is_available() and use_gpu:
+            logging.info(torch.cuda.current_device())
+            self.lm.cuda() # move model to GPU
     
     def score_lm(self, target: str, context: str, verbose=False) -> torch.Tensor:
         """
-        Use the unconditional language model (LM) to score
-        the target sequence.
+        Use language model to score the target sequence with
+        access to source context
         
         Args:
             target: target text or model hypothesis
             context: expected to be consist only of start of sequence token `<BOS>`
         """
         # encode adds </s> implicitly, so remove this from context
-        context_tokens = self.lmx.encode(context)[:-1] 
+        context_tokens = self.lm.encode(context)[:-1] 
         context_length = context_tokens.shape[-1]
+        target_tokens = self.lm.encode(target)
 
         if verbose:
-            print(
-                f'prefix = {self.lmx.tgt_dict.string(context_tokens)} ~~~ target = {self.lmx.tgt_dict.string(self.lmx.encode(target))}')
+            logging.info(
+                f'prefix = {self.lm.tgt_dict.string(context_tokens)} ~~~ target = {self.lm.tgt_dict.string(target_tokens)}')
         
+        # breakpoint()
+        if len(context_tokens) + len(target_tokens) > self.lm.max_positions:
+            logging.warning('could not score item due to length... (To do: implement truncation or use a smaller model.)')
+            return (None, None)
+            # if len(context_tokens) >= self.lm.max_positions:
+                # truncate context
+            # breakpoint()
+
         norm_scores = self.lm.score(context+target)
+        # breakpoint()
         # trim scores corresponding to <BOS> token
         return (
-            norm_scores['positional_scores'][context_length:].numpy(), 
+            norm_scores['positional_scores'][context_length:].cpu().numpy(), 
             self.lm.string(norm_scores['tokens'][context_length:])
         )
 
     def score_sequence(self, sequence):
         context, target = re.split(r'\s?<BOS>\s?', sequence)
             
-        
         lm_scores, lm_tokens = self.score_lm(target, '<BOS>')
-        lmx_scores, lmx_tokens = self.score_lmx(target, context+' <BOS>')
+        lmx_scores, lmx_tokens = self.score_lm(target, context+' <BOS>')
 
         assert lm_tokens == lmx_tokens
         assert len(lm_scores) == len(lmx_scores)
 
+        # breakpoint()
+        # formula (2) from Filippova (2020) (**modified**)
         # NOTE: for each token Wyt, check if pLM(Wyt) > pLMx(Wyt)
         # number of tokens for which lm score is greater than lmx
         I = lm_scores > lmx_scores
@@ -123,12 +111,15 @@ class HalluLMScorer:
             "target_text": target,
             "hal-lm_score": sum_score,
             "diff_pos_scores": (lm_scores - lmx_scores).tolist(),
+            "bool": I.tolist(),
             "target_tokens": lmx_tokens,
         }
 
     def _load_custom_lm(self, dictionary: str, checkpoint: str):
         return TransformerLanguageModel.from_pretrained(dictionary, checkpoint, bpe='sentencepiece')        
 
+    def truncate_input(self, input):
+        pass
 
 def iter_lines(infile):
     with open(infile, 'r', encoding='utf8') as inf:
@@ -140,15 +131,19 @@ def iter_lines(infile):
 if __name__ == '__main__':
 
     args = set_args()
-    hlm = HalluLMScorer(args.dict, args.lm, args.lmx)
+    hlm = HalluLMScorer(args.dict, args.lm, args.gpu)
 
     if args.infile:
         cond_responses = iter_lines(args.infile)
     else:
         cond_responses = [
             "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unserem Heimat Burger.",
-            "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unseren traditionellen Thai-Gerichten.",
-            "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unserer Holzofenpizza.",
+            "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unseren Speisen.",
+            "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unseren Thai-Gerichten.",
+            "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unseren authentischen Thai-Gerichten.",
+            "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unserer Holzofen-Pizza.",
+            "Sehr lecker und üppig <endtitle> Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut. <BOS> Liebe Tanja Herzlichen Dank für das tolle Feedback zu unserer traditionellen Holzofen-Pizza.",
+            
         ]
 
     if not args.outfile:
@@ -156,9 +151,19 @@ if __name__ == '__main__':
     else:
         outfile = open(args.outfile, 'w', encoding='utf8')
     
+    # scores = []
     for text in tqdm(cond_responses):
-        score_dict = hlm.score_sequence(text)
-        json.dump(score_dict, outfile, ensure_ascii=False)
-        outfile.write('\n')
+        try:
+            score_dict = hlm.score_sequence(text)
+            json.dump(score_dict, outfile, ensure_ascii=False)
+            outfile.write('\n')
+            # scores.append(score_dict)
+        except:
+            continue
+
+    # breakpoint()
+    # df = pd.DataFrame(scores)
+    # print(df.to_csv())
 
     outfile.close()
+

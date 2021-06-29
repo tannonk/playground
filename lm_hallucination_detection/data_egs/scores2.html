@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<meta name="robots" content="noindex">
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-1.7.2.js"></script>
+  <meta charset="utf-8">
+  <title>JS Bin</title>
+<style id="jsbin-css">
+
+body {
+  font-family: Arial, Helvetica, sans-serif
+}
+
+.hallucination {
+  background-color:rgb(208, 116, 116)
+}
+
+.orange {
+  background-color:rgb(201, 165, 99)
+}
+
+.green {
+  background-color:rgb(115, 167, 115)
+}
+
+#data td, #data th {
+  border: 2px #ddd;
+  padding: 12px;
+}
+
+#data tr:nth-child(even){background-color: #f2f2f2;}
+
+#data tr:hover {background-color: #ddd;}
+
+#data th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #33BEFF;
+  color: black;
+}
+
+</style>
+
+<script id="jsbin-javascript">
+
+// Get value on button click and show alert
+// $("#submit_button").click(function () {
+//   var user_threshold = $("#user_threshold").val();
+//   // alert(user_threshold);
+//   return user_threshold
+// });
+
+function display_highlights() {
+  var user_threshold = $("#user_threshold").val()
+  var score;
+  var th;
+
+  console.log(user_threshold)
+
+  $('span').each(function (index) {
+
+    th = $(this);
+
+    score = parseFloat($(this).attr('score'));
+    console.log(score);
+
+    if (score >= user_threshold) {
+      th.addClass('hallucination');
+    } else {
+      th.removeClass('hallucination')
+    };
+  });
+};
+
+$(document).ready(function () {
+  display_highlights()
+});
+
+</script>
+
+
+</head>
+<body>
+  
+<div id="description">
+<h2>Hallucination Detection</h2>
+<p>
+  This aims to visualise reference-free token-level
+  hallucination for text-to-text generation.
+</p>
+
+<p>
+  Select a threshold and inspect the highlighted data to
+  find a suitable threshold value.
+</p>
+
+<form>
+  <label for="user_threshold">Threshold:</label>
+  <input type="text" id="user_threshold" name="user_threshold" value="0.9">
+  <button type="button" id="submit_button" onclick="display_highlights()">Submit</button>
+</form>
+<br/><br/>
+</div>
+
+<table id="data">
+	<tbody>
+    <tr>
+      <th> hal score </th>
+      <th> hypothesis </th>
+      <th> source text </th>
+    </tr>
+
+
+
+      <tr>
+        <td>0.333</td>
+        <td><div><span score=-0.30265045166015625>L</span><span score=-0.10936547815799713>ie</span><span score=-0.4413420259952545>be</span><span score=-0.6130447387695312> Tanja</span><span score=-0.8456289768218994> Herzlichen</span><span score=0.009804287925362587> Dank</span><span score=0.0017365962266921997> für</span><span score=0.12621378898620605> das</span><span score=-0.05455052852630615> tolle</span><span score=-0.001996651291847229> Feedback</span><span score=0.16477346420288086> zu</span><span score=0.2210649847984314> unserem</span><span score=-1.7943859100341797> Heimat</span><span score=-2.3297390937805176> Burger</span><span score=-0.0035310983657836914>.</span></div></td>
+        <td>Schweizerisch, Europäisch, Speiselokal | Author: Tanja | Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.357</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=-0.18073558807373047> unseren</span><span score=-0.4918498992919922> Speisen</span><span score=-0.11750328540802002>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.588</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=-0.18073558807373047> unseren</span><span score=2.7942309379577637> Thai</span><span score=0.5989929437637329>-</span><span score=0.4655918776988983>Ger</span><span score=0.32494035363197327>ichten</span><span score=0.1458730697631836>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.474</td>
+        <td><div><span score=-0.21544933319091797>L</span><span score=-0.08159247040748596>ie</span><span score=-0.377163290977478>be</span><span score=-0.6282758712768555> Tanja</span><span score=0.05266618728637695> Herzlichen</span><span score=0.010705986060202122> Dank</span><span score=-0.023936748504638672> für</span><span score=0.37550806999206543> das</span><span score=-0.0019130706787109375> tolle</span><span score=-0.02127131074666977> Feedback</span><span score=-0.03698110580444336> zu</span><span score=0.21715927124023438> unseren</span><span score=-0.20800161361694336> authent</span><span score=-0.007808879017829895>ischen</span><span score=0.007112674415111542> Thai</span><span score=0.13169598579406738>-</span><span score=0.34110602736473083>Ger</span><span score=0.025560423731803894>ichten</span><span score=0.18765035271644592>.</span></div></td>
+        <td>Asiatisch, Thailändisch, Für Vegetarier Geeignet, Vegane Speisen, Glutenfreie Speisen | Author: Tanja | Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.588</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=0.2127084732055664> unserer</span><span score=3.262373924255371> Holzofen</span><span score=0.17903044819831848>-</span><span score=0.07806697487831116>P</span><span score=-0.5194313526153564>izza</span><span score=0.17599087953567505>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.556</td>
+        <td><div><span score=-0.23300457000732422>L</span><span score=-0.12297616899013519>ie</span><span score=-0.36663806438446045>be</span><span score=-0.7227916717529297> Tanja</span><span score=0.12856197357177734> Herzlichen</span><span score=0.011542064137756824> Dank</span><span score=-0.002489231526851654> für</span><span score=0.5144283771514893> das</span><span score=-0.05171990394592285> tolle</span><span score=7.320940494537354e-05> Feedback</span><span score=0.14284253120422363> zu</span><span score=0.30326128005981445> unserer</span><span score=1.0548124313354492> traditionellen</span><span score=0.9676556587219238> Holzofen</span><span score=0.19751054048538208>-</span><span score=-0.10162520408630371>P</span><span score=-0.2189565896987915>izza</span><span score=0.3011070489883423>.</span></div></td>
+        <td>Italienisch, traditionelle Pizza, Mediterran, Europäisch, Für Vegetarier Geeignet, Vegane Speisen, Glutenfreie Speisen | Author: Tanja | Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+  </tbody>
+</table>
+</body>
+</html>
+

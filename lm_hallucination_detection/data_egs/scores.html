@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<meta name="robots" content="noindex">
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-1.7.2.js"></script>
+  <meta charset="utf-8">
+  <title>JS Bin</title>
+<style id="jsbin-css">
+
+body {
+  font-family: Arial, Helvetica, sans-serif
+}
+
+.hallucination {
+  background-color:rgb(208, 116, 116)
+}
+
+.orange {
+  background-color:rgb(201, 165, 99)
+}
+
+.green {
+  background-color:rgb(115, 167, 115)
+}
+
+#data td, #data th {
+  border: 2px #ddd;
+  padding: 12px;
+}
+
+#data tr:nth-child(even){background-color: #f2f2f2;}
+
+#data tr:hover {background-color: #ddd;}
+
+#data th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #33BEFF;
+  color: black;
+}
+
+</style>
+
+<script id="jsbin-javascript">
+
+// Get value on button click and show alert
+// $("#submit_button").click(function () {
+//   var user_threshold = $("#user_threshold").val();
+//   // alert(user_threshold);
+//   return user_threshold
+// });
+
+function display_highlights() {
+  var user_threshold = $("#user_threshold").val()
+  var score;
+  var th;
+
+  console.log(user_threshold)
+
+  $('span').each(function (index) {
+
+    th = $(this);
+
+    score = parseFloat($(this).attr('score'));
+    console.log(score);
+
+    if (score >= user_threshold) {
+      th.addClass('hallucination');
+    } else {
+      th.removeClass('hallucination')
+    };
+  });
+};
+
+$(document).ready(function () {
+  display_highlights()
+});
+
+</script>
+
+
+</head>
+<body>
+  
+<div id="description">
+<h2>Hallucination Detection</h2>
+<p>
+  This aims to visualise reference-free token-level
+  hallucination for text-to-text generation.
+</p>
+
+<p>
+  Select a threshold and inspect the highlighted data to
+  find a suitable threshold value.
+</p>
+
+<form>
+  <label for="user_threshold">Threshold:</label>
+  <input type="text" id="user_threshold" name="user_threshold" value="0.9">
+  <button type="button" id="submit_button" onclick="display_highlights()">Submit</button>
+</form>
+<br/><br/>
+</div>
+
+<table id="data">
+	<tbody>
+    <tr>
+      <th> hal score </th>
+      <th> hypothesis </th>
+      <th> source text </th>
+    </tr>
+
+
+
+      <tr>
+        <td>0.400</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=0.156782329082489> unserem</span><span score=-1.9512109756469727> Heimat</span><span score=-4.658587455749512> Burger</span><span score=-0.24270212650299072>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.357</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=-0.18073558807373047> unseren</span><span score=-0.4918498992919922> Speisen</span><span score=-0.11750328540802002>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.588</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=-0.18073558807373047> unseren</span><span score=2.7942309379577637> Thai</span><span score=0.5989929437637329>-</span><span score=0.4655918776988983>Ger</span><span score=0.32494035363197327>ichten</span><span score=0.1458730697631836>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.579</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=-0.18073606491088867> unseren</span><span score=0.4560718536376953> authent</span><span score=-0.009466440416872501>ischen</span><span score=0.9757221937179565> Thai</span><span score=0.312649130821228>-</span><span score=0.376948744058609>Ger</span><span score=0.10245727002620697>ichten</span><span score=0.1456069052219391>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.588</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=0.2127084732055664> unserer</span><span score=3.262373924255371> Holzofen</span><span score=0.17903044819831848>-</span><span score=0.07806697487831116>P</span><span score=-0.5194313526153564>izza</span><span score=0.17599087953567505>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.611</td>
+        <td><div><span score=0.03946876525878906>L</span><span score=-0.15113116800785065>ie</span><span score=-0.5001788139343262>be</span><span score=-0.7585535049438477> Tanja</span><span score=0.1262507438659668> Herzlichen</span><span score=0.0069632697850465775> Dank</span><span score=-0.02836998552083969> für</span><span score=0.26778101921081543> das</span><span score=-0.11241894960403442> tolle</span><span score=-0.00025388598442077637> Feedback</span><span score=0.23989200592041016> zu</span><span score=0.2127084732055664> unserer</span><span score=0.9032821655273438> traditionellen</span><span score=2.084897994995117> Holzofen</span><span score=0.06669649481773376>-</span><span score=0.011112838983535767>P</span><span score=-0.31539130210876465>izza</span><span score=0.20700591802597046>.</span></div></td>
+        <td>Sehr lecker und üppig // Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+  </tbody>
+</table>
+</body>
+</html>
+

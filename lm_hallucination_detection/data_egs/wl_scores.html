@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<meta name="robots" content="noindex">
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-1.7.2.js"></script>
+  <meta charset="utf-8">
+  <title>JS Bin</title>
+<style id="jsbin-css">
+
+body {
+  font-family: Arial, Helvetica, sans-serif
+}
+
+.hallucination {
+  background-color:rgb(208, 116, 116)
+}
+
+.orange {
+  background-color:rgb(201, 165, 99)
+}
+
+.green {
+  background-color:rgb(115, 167, 115)
+}
+
+#data td, #data th {
+  border: 2px #ddd;
+  padding: 12px;
+}
+
+#data tr:nth-child(even){background-color: #f2f2f2;}
+
+#data tr:hover {background-color: #ddd;}
+
+#data th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #33BEFF;
+  color: black;
+}
+
+</style>
+
+<script id="jsbin-javascript">
+
+// Get value on button click and show alert
+// $("#submit_button").click(function () {
+//   var user_threshold = $("#user_threshold").val();
+//   // alert(user_threshold);
+//   return user_threshold
+// });
+
+function display_highlights() {
+  var user_threshold = $("#user_threshold").val()
+  var score;
+  var th;
+
+  console.log(user_threshold)
+
+  $('span').each(function (index) {
+
+    th = $(this);
+
+    score = parseFloat($(this).attr('score'));
+    console.log(score);
+
+    if (score >= user_threshold) {
+      th.addClass('hallucination');
+    } else {
+      th.removeClass('hallucination')
+    };
+  });
+};
+
+$(document).ready(function () {
+  display_highlights()
+});
+
+</script>
+
+
+</head>
+<body>
+  
+<div id="description">
+<h2>Hallucination Detection</h2>
+<p>
+  This aims to visualise reference-free token-level
+  hallucination for text-to-text generation.
+</p>
+
+<p>
+  Select a threshold and inspect the highlighted data to
+  find a suitable threshold value.
+</p>
+
+<form>
+  <label for="user_threshold">Threshold:</label>
+  <input type="text" id="user_threshold" name="user_threshold" value="0.9">
+  <button type="button" id="submit_button" onclick="display_highlights()">Submit</button>
+</form>
+<br/><br/>
+</div>
+
+<table id="data">
+	<tbody>
+    <tr>
+      <th> hal score </th>
+      <th> hypothesis </th>
+      <th> source text </th>
+    </tr>
+
+
+
+      <tr>
+        <td>0.500</td>
+        <td><div><span score=1.412515640258789>Liebe </span><span score=-0.9745879173278809>Tanja </span><span score=-0.12052631378173828>Herzlichen </span><span score=0.014426810666918755>Dank </span><span score=-0.006299711763858795>für </span><span score=0.32360005378723145>das </span><span score=-0.24145501852035522>tolle </span><span score=0.028349772095680237>Feedback </span><span score=0.38994407653808594>zu </span><span score=0.13799899816513062>unserem </span><span score=-3.2395763397216797>Heimat </span><span score=-5.144155979156494>Burger. </span></div></td>
+        <td>Sehr lecker und üppig &lt;endtitle&gt; Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.455</td>
+        <td><div><span score=1.412515640258789>Liebe </span><span score=-0.9745879173278809>Tanja </span><span score=-0.12052631378173828>Herzlichen </span><span score=0.014426810666918755>Dank </span><span score=-0.006299711763858795>für </span><span score=0.32360005378723145>das </span><span score=-0.24145501852035522>tolle </span><span score=0.028349772095680237>Feedback </span><span score=0.38994407653808594>zu </span><span score=-0.5374791622161865>unseren </span><span score=-0.882230281829834>Speisen. </span></div></td>
+        <td>Sehr lecker und üppig &lt;endtitle&gt; Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.545</td>
+        <td><div><span score=1.412515640258789>Liebe </span><span score=-0.9745879173278809>Tanja </span><span score=-0.12052631378173828>Herzlichen </span><span score=0.014426810666918755>Dank </span><span score=-0.006299711763858795>für </span><span score=0.32360005378723145>das </span><span score=-0.24145501852035522>tolle </span><span score=0.028349772095680237>Feedback </span><span score=0.38994407653808594>zu </span><span score=-0.5374791622161865>unseren </span><span score=3.8369011878967285>Thai-Gerichten. </span></div></td>
+        <td>Sehr lecker und üppig &lt;endtitle&gt; Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.583</td>
+        <td><div><span score=1.412515640258789>Liebe </span><span score=-0.9745879173278809>Tanja </span><span score=-0.12052631378173828>Herzlichen </span><span score=0.014426810666918755>Dank </span><span score=-0.006299711763858795>für </span><span score=0.32360005378723145>das </span><span score=-0.24145501852035522>tolle </span><span score=0.028349772095680237>Feedback </span><span score=0.38994407653808594>zu </span><span score=-0.5374791622161865>unseren </span><span score=1.3239636421203613>authentischen </span><span score=3.295858860015869>Thai-Gerichten. </span></div></td>
+        <td>Sehr lecker und üppig &lt;endtitle&gt; Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.636</td>
+        <td><div><span score=1.412515640258789>Liebe </span><span score=-0.9745879173278809>Tanja </span><span score=-0.12052631378173828>Herzlichen </span><span score=0.014426810666918755>Dank </span><span score=-0.006299711763858795>für </span><span score=0.32360005378723145>das </span><span score=-0.24145501852035522>tolle </span><span score=0.028349772095680237>Feedback </span><span score=0.38994407653808594>zu </span><span score=0.6159223318099976>unserer </span><span score=2.694589138031006>Holzofen-Pizza. </span></div></td>
+        <td>Sehr lecker und üppig &lt;endtitle&gt; Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+      <tr>
+        <td>0.583</td>
+        <td><div><span score=1.412515640258789>Liebe </span><span score=-0.9745879173278809>Tanja </span><span score=-0.12052631378173828>Herzlichen </span><span score=0.014426810666918755>Dank </span><span score=-0.006299711763858795>für </span><span score=0.32360005378723145>das </span><span score=-0.24145501852035522>tolle </span><span score=0.028349772095680237>Feedback </span><span score=0.38994407653808594>zu </span><span score=0.6159223318099976>unserer </span><span score=-0.7147579193115234>traditionellen </span><span score=2.1961708068847656>Holzofen-Pizza. </span></div></td>
+        <td>Sehr lecker und üppig &lt;endtitle&gt; Der Heimat Burger ist sehr lecker, die Pommes dazu außergewöhnlich gut.</td>
+      </tr>
+
+  </tbody>
+</table>
+</body>
+</html>
+

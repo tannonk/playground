@@ -12,6 +12,7 @@ python hallu_lm.py --dict /srv/scratch6/kew/lm_data/rrgen_de/gpt2tiny/lm_cond/ -
 
 import sys
 import math
+from typing import List, Tuple, Dict
 import logging
 import numpy as np
 from tqdm import tqdm
@@ -35,17 +36,37 @@ def set_args():
     
     return ap.parse_args()
 
+def iter_lines(infile):
+    with open(infile, 'r', encoding='utf8') as inf:
+        for line in inf:
+            yield line.strip()
+            
+def merge_subword_scores(sw_scores, sw_token_string):
+    # breakpoint()
+    new_string = ''
+    new_scores = []
+    for i, tok in enumerate(sw_token_string.split()):
+#         print(new_scores)
+        if tok[0] != '▁' and i != 0:            
+#             print(i, tok)
+            new_scores[-1] += sw_scores[i]
+            new_string += tok
+        else:
+            new_scores.append(sw_scores[i])
+            new_string += tok.replace('▁', ' ')
+            
+    return np.array(new_scores), new_string
+
 class HalluLMScorer:
 
     """
     Implementation of LM-based hallucination detection
-    proposed by Filippova (2020).
-
+    inspired by Filippova (2020) / Fernandes et al. (2021).
     """
 
     def __init__(self, dictionary: str, LM_path: str, use_gpu: bool):
         
-        self.lm = self._load_custom_lm(dictionary, LM_path)        
+        self.lm = self._load_custom_lm(dictionary, LM_path) 
         # disable dropout
         self.lm.eval()
 
@@ -88,24 +109,26 @@ class HalluLMScorer:
         )
 
     def score_sequence(self, sequence):
+        
         context, target = re.split(r'\s?<BOS>\s?', sequence)
             
         lm_scores, lm_tokens = self.score_lm(target, '<BOS>')
         lmx_scores, lmx_tokens = self.score_lm(target, context+' <BOS>')
 
+        lm_scores, lm_tokens = merge_subword_scores(lm_scores, lm_tokens)
+        lmx_scores, lmx_tokens = merge_subword_scores(lmx_scores, lmx_tokens)
+
         assert lm_tokens == lmx_tokens
         assert len(lm_scores) == len(lmx_scores)
 
-        # breakpoint()
+
         # formula (2) from Filippova (2020) (**modified**)
         # NOTE: for each token Wyt, check if pLM(Wyt) > pLMx(Wyt)
         # number of tokens for which lm score is greater than lmx
         I = lm_scores > lmx_scores
+        sum_score = I.sum()/len(lm_scores)
         # breakpoint()
 
-        sum_score = I.sum()/len(lm_scores)
-
-        # return (1-sum_score, lm_scores - lmx_scores, tokens)
         return {
             "source_text": context,
             "target_text": target,
@@ -116,16 +139,11 @@ class HalluLMScorer:
         }
 
     def _load_custom_lm(self, dictionary: str, checkpoint: str):
-        return TransformerLanguageModel.from_pretrained(dictionary, checkpoint, bpe='sentencepiece')        
+        return TransformerLanguageModel.from_pretrained(dictionary, checkpoint, bpe='sentencepiece')
 
     def truncate_input(self, input):
         pass
 
-def iter_lines(infile):
-    with open(infile, 'r', encoding='utf8') as inf:
-        for line in inf:
-            yield line.strip()
-            
 
 
 if __name__ == '__main__':

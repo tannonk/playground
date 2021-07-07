@@ -158,7 +158,8 @@ def get_simple_html(data):
 
     tokens = ['<div>']
     for score, token in zip(data['diff_pos_scores'], data['target_tokens'].split()):
-        html_str = f'<span score={score}>{token.replace("▁", " ")}</span>'
+        # html_str = f'<span score={score}>{token.replace("▁", " ")}</span>'
+        html_str = f'<span score={score}>{token} </span>'
         tokens.append(html_str)
     tokens.append('</div>')
     

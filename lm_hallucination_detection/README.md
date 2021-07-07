@@ -46,7 +46,7 @@ python generate_static_html_for_visualisation.py /srv/scratch6/kew/lm_data/rrgen
 Open the output html file in a browser. Expected output is
 something like:
 
-![HTML display example](./imgs/html_display.png)
+![HTML display example](./imgs/html_display_dummy.png)
 
 
 ## LMcond vs LMunc (Filippova (2020))
@@ -105,7 +105,14 @@ python generate_static_html_for_visualisation.py data_egs/scores.jsonl >| data_e
 - sequence lengths > model's max sequence length (e.g. 768
   for gpt2small model) are skipped when performing scoring.
   Truncation needs to be implemented.
-- scoring works as expected for small dummy set of examples,
-  but when scoring full validation set, scoring is bad
+
+- scoring works as expected for small dummy set of examples
+  (see screenshot above). When scoring full validation set,
+  scoring doesn't seem to be as intuitive. For example, many
+  unsupported phrases are ignored and non-content words are
+  most frequently highlighted.
+
+![HTML display example](./imgs/html_display_problems.png)
+
 
 

@@ -4,6 +4,10 @@
 """
 converts jsonl format to simple src <BOS> hyp format
 
+NOTE also takes a file containing language tags and the
+target language if filtering by language needs to be done
+(applicable for mBART models trained in ReAdvisor)
+
 Example call
 
     python prep_data_for_scoring.py /srv/scratch6/kew/mbart/hospo_respo/respo_final/2021_06/mbart_model_2021-06-18/ft/2021-06-20_14-52-42/inference/translations_21.json /srv/scratch6/kew/mbart/hospo_respo/respo_final/2021_06/data/test.lang_tags de_DE > /srv/scratch6/kew/mbart/hospo_respo/respo_final/2021_06/mbart_model_2021-06-18/ft/2021-06-20_14-52-42/inference/translations_21.simple.txt

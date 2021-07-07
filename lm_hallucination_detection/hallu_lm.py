@@ -69,6 +69,9 @@ class HalluLMScorer:
         self.lm = self._load_custom_lm(dictionary, LM_path) 
         # disable dropout
         self.lm.eval()
+        # sanity check: ensure that parameters are frozen
+        for param in self.lm.parameters():
+            param.requires_grad = False
 
         if torch.cuda.is_available() and use_gpu:
             logging.info(torch.cuda.current_device())
